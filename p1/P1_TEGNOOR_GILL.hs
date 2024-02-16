@@ -1,6 +1,5 @@
 import qualified Data.Map.Strict as Map
 
-
 type VarAsgn = Map.Map VarId Bool
 type VarId = String
 
@@ -12,7 +11,6 @@ data Prop = Const Bool
             | Imply Prop Prop
             | Iff Prop Prop 
             deriving (Eq, Read, Show)
-
 
 findVarIds :: Prop -> [VarId]
 findVarIds (Const _) = []
