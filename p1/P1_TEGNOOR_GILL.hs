@@ -50,7 +50,6 @@ checkFormula formulaStr =
 main :: IO ()
 main = do
     contents <- readFile "formulas.txt"
-    let formulaStrings = lines contents
-    mapM_ (putStrLn . checkFormula) formulaStrings
+    mapM_ (putStrLn . checkFormula) (lines contents) 
 
 
