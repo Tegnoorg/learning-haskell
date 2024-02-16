@@ -30,6 +30,7 @@ eval :: Prop -> VarAsgn -> Bool
 eval (Const p) _ = p
 eval (Var p) a = case Map.lookup p a of
     Just p -> p
+    Nothing -> error "error"
 eval (Not p) a = not (eval p a)
 eval (And p1 p2) a = eval p1 a && eval p2 a
 eval (Or p1 p2) a = eval p1 a || eval p2 a
