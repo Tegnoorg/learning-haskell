@@ -24,13 +24,34 @@ findVarIds (Imply p p1) = findVarIds p ++ findVarIds p1
 findVarIds (Iff p p1) = findVarIds p ++ findVarIds p1
 
 genVarAsgns :: [VarId] -> [VarAsgn] 
-genVarAsgns = error "Not done" 
+genVarAsgns vars = map (Map.fromList . zip vars) (sequence (replicate (length vars) [True, False]))
 
 eval :: Prop -> VarAsgn -> Bool
-eval = error "Not done"
+eval (Const p) _ = p
+eval (Var p) a = case Map.lookup p a of
+    Just p -> p
+eval (Not p) a = not (eval p a)
+eval (And p1 p2) a = eval p1 a && eval p2 a
+eval (Or p1 p2) a = eval p1 a || eval p2 a
+eval (Imply p1 p2) a = not (eval p1 a) || eval p2 a
+eval (Iff p1 p2) a = eval p1 a == eval p2 a
+
+sat :: Prop -> Bool 
+sat p = any (eval p) (genVarAsgns (findVarIds p))
 
 readFormula :: String -> Prop
-readFormula = error "Not done"
+readFormula  = read
 
 checkFormula :: String -> String
-checkFormula = error "Not done"
+checkFormula formulaStr =
+    if sat (readFormula formulaStr)
+        then "SAT"
+        else "UNSAT"
+
+main :: IO ()
+main = do
+    contents <- readFile "formulas.txt"
+    let formulaStrings = lines contents
+    mapM_ (putStrLn . checkFormula) formulaStrings
+
+
