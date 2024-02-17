@@ -2,3 +2,27 @@ Const True
 Iff (Var "x") (Var "y")
 And (Var "x1") (Not (Var "x2"))
 Not (Imply (Var "p") (Imply (Var "q") (Var "p")))
+Var "x"
+Const False
+Not (Var "x")
+Or (Var "x") (Var "y")
+Imply (Var "p") (Var "q")
+Iff (Var "p") (Var "q")
+And (Or (Var "p") (Var "q")) (Not (Var "r"))
+And (Or (Var "x") (Var "y")) (Not (And (Var "p") (Var "q")))
+Or (Var "x") (And (Var "x") (Not (Var "x")))
+And (Or (Var "x1") (Var "x2")) (Or (Var "x3") (Var "x4"))
+Const True
+Iff (Var "x") (Var "y")
+And (Var "x1") (Not (Var "x2"))
+Not (Imply (Var "p") (Imply (Var "q") (Var "p")))
+Var "x"
+Const False
+Not (Var "x")
+Or (Var "x") (Var "y")
+Imply (Var "p") (Var "q")
+Iff (Var "p") (Var "q")
+And (Or (Var "p") (Var "q")) (Not (Var "r"))
+And (Or (Var "x") (Var "y")) (Not (And (Var "p") (Var "q")))
+Or (Var "x") (And (Var "x") (Not (Var "x")))
+And (Or (Var "x1") (Var "x2")) (Or (Var "x3") (Var "x4"))
