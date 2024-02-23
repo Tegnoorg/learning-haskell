@@ -17,7 +17,11 @@ instance Monad (ErrJst e) where
     Err e >>= _ = Err e
     Jst f >>= j = j f
 
--- question 4
+
+join :: (Monad m) => m (m a) -> m a
+join mm = do
+    m <- mm
+    m
 
 
 data LTree a = Leaf a | LNode (LTree a) (LTree a) deriving (Show)
