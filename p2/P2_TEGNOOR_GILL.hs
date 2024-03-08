@@ -12,7 +12,7 @@
 -- OrTerm  ::= Factor  '/\'  OrTerm  | Factor
 -- Factor  ::= '(' Formula ')' | 'T' | 'F' | Ident
 
-import Data.Char (isSpace, isLower, isAlphaNum, isDigit)
+import Data.Char (isSpace, isLower, isAlphaNum)
 import Control.Applicative hiding (Const)
 import System.Environment (getArgs)
 import Prelude
@@ -85,9 +85,6 @@ space = do
     many (sat isSpace)
     return ()
 
-digit :: Parser Char
-digit = sat isDigit
-
 lower :: Parser Char
 lower = sat isLower
 
@@ -128,35 +125,50 @@ constant = true <|> false
 
 
 var :: Parser Prop
-var = token (Var <$> identifier)
+var = do
+    v <- identifier
+    return (Var v)
+
+-- G2
+-- Formula ::= ImpTerm '<->' Formula | ImpTerm
+-- ImpTerm ::= AndTerm '->'  ImpTerm | AndTerm
+-- AndTerm ::= OrTerm  '\/'  AndTerm | OrTerm
+-- OrTerm  ::= Factor  '/\'  OrTerm  | Factor
+-- Factor  ::= '(' Formula ')' | 'T' | 'F' | Ident
+factor :: Parser Prop
+factor = constant <|> var
+
+andTerm :: Parser Prop
+andTerm = do 
+    t <- factor
+    symbol "/\\"
+    f <- andTerm
+    return (And t f)
+    <|> factor
+
+orTerm :: Parser Prop
+orTerm = do 
+    t <- andTerm
+    symbol "\\/"
+    f <- orTerm
+    return (Or t f)
+    <|> andTerm
+
+impTerm :: Parser Prop
+impTerm = do 
+    t <- orTerm
+    symbol "->"
+    f <- impTerm
+    return (Iff t f)
+    <|> orTerm
 
 formula :: Parser Prop
-formula = g1Formula
-  where
-    g1Formula = chain g1ImpTerm (symbol "<->" *> pure Iff)
-    g1ImpTerm = chain g1AndTerm (symbol "->" *> pure Imply)
-    g1AndTerm = chain g1OrTerm (symbol "/\\" *> pure And)
-    g1OrTerm = chain g1Factor (symbol "\\/" *> pure Or)
-    g1Factor = token (parens formula <|> constant <|> var)
-
-chain :: Parser a -> Parser (a -> a -> a) -> Parser a
-chain p op = do
-  x <- p
-  rest x
-  where
-    rest x = do
-      f <- op
-      y <- p
-      rest (f x y)
-      <|> return x
-
-parens :: Parser a -> Parser a
-parens p = do
-  symbol "("
-  x <- p
-  symbol ")"
-  return x
-
+formula = do 
+    t <- impTerm
+    symbol "<->"
+    f <- formula
+    return (Imply t f)
+    <|> impTerm
 
 
 parseFormula :: String -> String 
