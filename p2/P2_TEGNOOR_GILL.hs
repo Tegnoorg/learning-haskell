@@ -12,10 +12,12 @@
 -- OrTerm  ::= Factor  '/\'  OrTerm  | Factor
 -- Factor  ::= '(' Formula ')' | 'T' | 'F' | Ident
 
-import Data.Char (isSpace)
-import Control.Applicative
+import Data.Char (isSpace, isLower, isAlphaNum, isDigit)
+import Control.Applicative hiding (Const)
 import System.Environment (getArgs)
-import Data.Functor
+import Prelude
+import System.IO
+
 
 data Prop = Const Bool
         | Var String
@@ -66,9 +68,6 @@ item = P (\input -> case input of
     [] -> []    
     (x:xs) -> [(x, xs)])
 
-char :: Char -> Parser Char
-char x = sat (== x)
-
 sat :: (Char -> Bool) -> Parser Char
 sat p = do
     x <- item
@@ -86,14 +85,79 @@ space = do
     many (sat isSpace)
     return ()
 
+digit :: Parser Char
+digit = sat isDigit
+
+lower :: Parser Char
+lower = sat isLower
+
+alphanum :: Parser Char
+alphanum = sat isAlphaNum
+
+char :: Char -> Parser Char
+char x = sat (==x)
+
+ident :: Parser String
+ident = do 
+    x <- lower
+    xs <- many alphanum
+    return (x:xs)
+
+token :: Parser a -> Parser a
+token p = do
+    space
+    v <- p
+    space
+    return v
+
+identifier :: Parser String
+identifier = token ident 
+
+symbol :: String -> Parser String
+symbol xs = token (string xs)
+
 constant :: Parser Prop
-constant = error "error"
+constant = true <|> false
+  where
+    true = do
+        symbol "T"
+        return (Const True)
+    false = do
+        symbol "F"
+        return (Const False)
+
 
 var :: Parser Prop
-var = error "error"
+var = token (Var <$> identifier)
 
 formula :: Parser Prop
-formula = error "error"
+formula = g1Formula
+  where
+    g1Formula = chain g1ImpTerm (symbol "<->" *> pure Iff)
+    g1ImpTerm = chain g1AndTerm (symbol "->" *> pure Imply)
+    g1AndTerm = chain g1OrTerm (symbol "/\\" *> pure And)
+    g1OrTerm = chain g1Factor (symbol "\\/" *> pure Or)
+    g1Factor = token (parens formula <|> constant <|> var)
+
+chain :: Parser a -> Parser (a -> a -> a) -> Parser a
+chain p op = do
+  x <- p
+  rest x
+  where
+    rest x = do
+      f <- op
+      y <- p
+      rest (f x y)
+      <|> return x
+
+parens :: Parser a -> Parser a
+parens p = do
+  symbol "("
+  x <- p
+  symbol ")"
+  return x
+
+
 
 parseFormula :: String -> String 
 parseFormula s
