@@ -2,21 +2,21 @@
 -- Formula ::= Formula '<->' Formula | ImpTerm
 -- ImpTerm ::= ImpTerm '->'  ImpTerm | AndTerm
 -- AndTerm ::= AndTerm '\/'  AndTerm | OrTerm
--- OrTerm  ::= OrTerm  '/\'  OrTerm  | Factor
+-- OrTerm  ::= OrTerm  '/\\'  OrTerm  | Factor
 -- Factor  ::= '(' Formula ')' | 'T' | 'F' | Ident
 
 -- G2
 -- Formula ::= ImpTerm '<->' Formula | ImpTerm
 -- ImpTerm ::= AndTerm '->'  ImpTerm | AndTerm
 -- AndTerm ::= OrTerm  '\/'  AndTerm | OrTerm
--- OrTerm  ::= Factor  '/\'  OrTerm  | Factor
+-- OrTerm  ::= Factor  '/\\'  OrTerm  | Factor
 -- Factor  ::= '(' Formula ')' | 'T' | 'F' | Ident
 
 import Data.Char (isSpace, isLower, isAlphaNum)
-import Control.Applicative hiding (Const)
+import Control.Applicative ( Applicative(pure, (<*>)), Alternative((<|>), empty, many) )
 import System.Environment (getArgs)
 import Prelude
-import System.IO
+import System.IO ()
 
 
 data Prop = Const Bool
@@ -31,7 +31,7 @@ data Prop = Const Bool
 newtype Parser a = P (String -> [(a, String)])
 
 parse :: Parser a -> String -> [(a, String)]
-parse (P p) input = p input
+parse (P p) = p
 
 instance Functor Parser where
     fmap :: (a -> b) -> Parser a -> Parser b
