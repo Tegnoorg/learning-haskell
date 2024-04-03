@@ -3,7 +3,7 @@ import qualified Data.Map.Strict as Map
 import System.IO ()
 import System.Environment (getArgs)
 
--- Data types for expressions and types
+
 data Type = TInt
           | TBool
           | TArr Type Type
@@ -23,67 +23,62 @@ data Expr = CInt Int
           | LetIn VarId Type Expr Expr
           deriving (Eq, Ord, Read, Show)
 
--- Typing environment
+
 type Env = Map VarId Type
 
--- Auxiliary function to check types for arithmetic expressions
+
 typingArith :: Maybe Type -> Maybe Type -> Maybe Type
 typingArith (Just TInt) (Just TInt) = Just TInt
 typingArith _ _ = Nothing
 
--- Auxiliary function to check types for equality expressions
-typingEq :: Maybe Type -> Maybe Type -> Maybe Type
+typingEq :: Maybe Type -> Maybe Type -> Maybe Type 
 typingEq (Just TInt) (Just TInt) = Just TBool
 typingEq (Just TBool) (Just TBool) = Just TBool
 typingEq _ _ = Nothing
 
--- Main type checking function
 typing :: Env -> Expr -> Maybe Type
-typing _ (CInt _) = Just TInt
-typing _ (CBool _) = Just TBool
+typing _ (CInt x) = Just TInt
+typing _ (CBool x) = Just TBool
 typing env (Var x) = Map.lookup x env
-typing env (Plus e1 e2) = typingArith (typing env e1) (typing env e2)
-typing env (Minus e1 e2) = typingArith (typing env e1) (typing env e2)
-typing env (Equal e1 e2) = typingEq (typing env e1) (typing env e2)
-typing env (ITE e1 e2 e3) = do
-    t1 <- typing env e1
-    if t1 == TBool then do
-        t2 <- typing env e2
-        t3 <- typing env e3
-        if t2 == t3 then Just t2 else Nothing
-    else
-        Nothing
-typing env (Abs x t e) = do
-    t' <- typing (Map.insert x t env) e
-    return $ TArr t t'
-typing env (App e1 e2) = do
-    t1 <- typing env e1
-    case t1 of
-        TArr tArg tRes -> do
-            t2 <- typing env e2
-            if tArg == t2 then Just tRes else Nothing
+typing env (Plus x y) = typingArith (typing env x) (typing env y)
+typing env (Minus x y) = typingArith (typing env x) (typing env y)
+typing env (Equal x y) = typingEq (typing env x) (typing env y)
+typing env (ITE x y z) = do
+    x1 <- typing env x
+    y1 <- typing env y
+    z1 <- typing env z
+    if x1 == TBool && y1 == z1 
+        then Just z1 
+        else Nothing
+typing env (Abs x y z) = 
+    case typing (Map.insert x y env) z of
+        Just y1 -> Just (TArr y y1)
+        _ -> Nothing
+typing env (App x y ) = do
+    x1 <- typing env x
+    case x1 of
+        TArr z u -> do
+            y1 <- typing env y
+            if z == y1 then Just u else Nothing
         _ -> Nothing
 typing env (LetIn x t e1 e2) = do
     t1 <- typing env e1
-    typing (Map.insert x t env) e2
+    if t1 == t
+        then typing (Map.insert x t env) e2
+        else Nothing
 
--- Function to read expressions from string
-readExpr :: String -> Expr
+readExpr :: String -> Expr 
 readExpr = read
 
--- Function to handle type checking and produce output string
 typeCheck :: Expr -> String
-typeCheck expr =
-    case typing Map.empty expr of
-        Just t -> show t
-        Nothing -> "Type Error"
+typeCheck x = maybe "Type Error" show (typing Map.empty x)
 
--- Main function to handle IO
+
 main :: IO ()
 main = do
     args <- getArgs
-    let filename = head args
-    contents <- readFile filename
-    let exprs = lines contents
-    let results = map (typeCheck . readExpr) exprs
-    mapM_ putStrLn results
+    case args of
+        [fileName] -> do
+            contents <- readFile fileName
+            let formulaStrings = lines contents
+            mapM_ (putStrLn . typeCheck . readExpr) formulaStrings
