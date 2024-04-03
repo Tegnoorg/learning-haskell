@@ -99,3 +99,4 @@ Minus (App (Abs "x" TInt (Var "x")) (CInt 1)) (App (Abs "x" TInt (Var "x")) (CIn
 Equal (App (Abs "x" TInt (Var "x")) (CInt 1)) (App (Abs "x" TInt (Var "x")) (CInt 1))
 Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (Plus (CInt 1) (CInt 2)))))))))
 LetIn "x" TInt (CInt 1) (LetIn "y" TBool (CBool True) (Plus (Minus (Plus (Var "x") (CInt 2)) (CBool False)) (ITE (Equal (Var "y") (CBool True)) (CInt 10) (CInt 20))))
+LetIn "x" TInt (CBool True) (Var "x")
