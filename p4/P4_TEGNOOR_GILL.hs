@@ -69,23 +69,23 @@ infer g (Var x) = case Map.lookup x g of
 infer g (Plus e1 e2) = do
   (t1, c1) <- infer g e1
   (t2, c2) <- infer g e2
-  let c = Set.unions [c1, c2, Set.fromList [CEq t1 TInt, CEq t2 TInt]]
+  let c = Set.union [c1, c2, Set.fromList [CEq t1 TInt, CEq t2 TInt]]
   return (TInt, c)
 infer g (Minus e1 e2) = do
   (t1, c1) <- infer g e1
   (t2, c2) <- infer g e2
-  let c = Set.unions [c1, c2, Set.fromList [CEq t1 TInt, CEq t2 TInt]]
+  let c = Set.union [c1, c2, Set.fromList [CEq t1 TInt, CEq t2 TInt]]
   return (TInt, c)
 infer g (Equal e1 e2) = do
   (t1, c1) <- infer g e1
   (t2, c2) <- infer g e2
-  let c = Set.unions [c1, c2, Set.fromList [CEq t1 t2]]
+  let c = Set.union [c1, c2, Set.fromList [CEq t1 t2]]
   return (TBool, c)
 infer g (ITE e1 e2 e3) = do
   (t1, c1) <- infer g e1
   (t2, c2) <- infer g e2
   (t3, c3) <- infer g e3
-  let c = Set.unions [c1, c2, c3, Set.fromList [CEq t1 TBool, CEq t2 t3]]
+  let c = Set.union [c1, c2, c3, Set.fromList [CEq t1 TBool, CEq t2 t3]]
   return (t2, c)
 infer g (Abs x e) = do
   v <- getFreshTVar
@@ -95,7 +95,7 @@ infer g (App e1 e2) = do
   (t1, c1) <- infer g e1
   (t2, c2) <- infer g e2
   v <- getFreshTVar
-  let c = Set.unions [c1, c2, Set.fromList [CEq t1 (TArr t2 v)]]
+  let c = Set.union [c1, c2, Set.fromList [CEq t1 (TArr t2 v)]]
   return (v, c)
 infer g (LetIn x e1 e2) = do
   (t1, c1) <- infer g e1
